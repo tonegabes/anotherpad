@@ -1,118 +1,127 @@
 <template>
-  <div
-    class="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 overflow-hidden"
-  >
-    <div v-if="note" class="h-full">
+  <div class="h-full flex flex-col">
+    <div v-if="note" class="h-full flex flex-col">
       <!-- Editor Header -->
-      <div class="px-6 py-4 border-b border-gray-200 dark:border-gray-700">
-        <div class="flex items-center justify-between mb-4">
-          <div class="flex items-center space-x-3">
-            <button
-              @click="$emit('togglePin', note.id)"
-              :class="[
-                'p-2 rounded-lg transition-colors',
-                note.isPinned
-                  ? 'bg-yellow-100 dark:bg-yellow-900/30 text-yellow-600 dark:text-yellow-400'
-                  : 'bg-gray-100 dark:bg-gray-700 text-gray-400 hover:text-yellow-600 dark:hover:text-yellow-400',
-              ]"
-              title="Pin note"
-            >
-              <Pin :size="16" />
-            </button>
-            <div class="text-sm text-gray-500 dark:text-gray-400">
-              Last updated {{ formatDate(note.updatedAt) }}
-            </div>
-          </div>
-          <div class="text-sm text-gray-500 dark:text-gray-400">
-            {{ wordCount }} words
-          </div>
-        </div>
-
+      <div
+        class="flex-shrink-0 px-6 py-4 border-b border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800"
+      >
         <!-- Title Input -->
         <input
           v-model="localTitle"
           @input="debouncedUpdate"
           type="text"
-          placeholder="Note title..."
-          class="w-full text-2xl font-bold bg-transparent border-0 text-gray-900 dark:text-white placeholder-gray-400 focus:outline-none focus:ring-0"
+          placeholder="Title your note..."
+          class="w-full text-2xl font-semibold bg-transparent border-0 text-gray-900 dark:text-white placeholder-gray-400 focus:outline-none focus:ring-0 mb-3"
         />
 
-        <!-- Tags Input -->
-        <div class="mt-4">
-          <div class="flex flex-wrap gap-2 mb-2">
+        <!-- Note Info Bar -->
+        <div
+          class="flex items-center justify-between text-xs text-gray-500 dark:text-gray-400"
+        >
+          <div class="flex items-center space-x-4">
+            <span>{{ formatDate(note.updatedAt) }}</span>
+            <span>{{ wordCount }} words</span>
+            <span>{{ characterCount }} characters</span>
+          </div>
+          <div class="flex items-center space-x-2">
+            <button
+              @click="$emit('togglePin', note.id)"
+              :class="[
+                'p-1.5 rounded transition-colors',
+                note.isPinned
+                  ? 'bg-green-100 dark:bg-green-900/30 text-green-600 dark:text-green-400'
+                  : 'text-gray-400 hover:text-green-600 hover:bg-green-50 dark:hover:bg-green-900/20',
+              ]"
+              title="Pin note"
+            >
+              <Pin :size="14" />
+            </button>
+          </div>
+        </div>
+
+        <!-- Tags Section -->
+        <div class="mt-3">
+          <div class="flex flex-wrap gap-1.5 mb-2">
             <span
               v-for="tag in note.tags"
               :key="tag"
-              class="inline-flex items-center px-3 py-1 bg-blue-100 dark:bg-blue-900/30 text-blue-800 dark:text-blue-300 text-sm rounded-full"
+              class="inline-flex items-center px-2 py-1 bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 text-xs rounded-md"
             >
-              #{{ tag }}
+              {{ tag }}
               <button
                 @click="removeTag(tag)"
-                class="ml-2 text-blue-600 dark:text-blue-400 hover:text-blue-800 dark:hover:text-blue-200"
+                class="ml-1.5 text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200"
               >
-                <X :size="14" />
+                <X :size="12" />
               </button>
             </span>
+            <button
+              v-if="!showTagInput"
+              @click="showTagInput = true"
+              class="inline-flex items-center px-2 py-1 text-xs text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-md transition-colors"
+            >
+              <Tag :size="12" class="mr-1" />
+              Add tag
+            </button>
           </div>
-          <div class="relative">
+
+          <div v-if="showTagInput" class="flex items-center space-x-2">
             <input
-              v-model="tagInput"
-              @keydown="handleTagInput"
-              @blur="addTag"
+              ref="tagInput"
+              v-model="newTag"
+              @keyup.enter="addTag"
+              @keyup.escape="cancelTagInput"
+              @blur="cancelTagInput"
               type="text"
-              placeholder="Add tags (press Enter)"
-              class="w-full px-3 py-2 bg-gray-50 dark:bg-gray-700 border border-gray-200 dark:border-gray-600 rounded-lg text-sm text-gray-900 dark:text-white placeholder-gray-400 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              placeholder="Tag name..."
+              class="px-2 py-1 text-xs bg-gray-100 dark:bg-gray-700 border-0 rounded text-gray-900 dark:text-white placeholder-gray-500 focus:ring-1 focus:ring-green-500"
             />
+            <button
+              @click="addTag"
+              class="p-1 text-green-600 hover:text-green-700"
+            >
+              <Check :size="12" />
+            </button>
+            <button
+              @click="cancelTagInput"
+              class="p-1 text-gray-400 hover:text-gray-600"
+            >
+              <X :size="12" />
+            </button>
           </div>
         </div>
       </div>
 
       <!-- Editor Content -->
-      <div class="p-6">
+      <div class="flex-1 flex flex-col overflow-hidden">
         <textarea
           v-model="localContent"
           @input="debouncedUpdate"
-          placeholder="Start writing your note..."
-          class="w-full h-96 bg-transparent border-0 text-gray-900 dark:text-white placeholder-gray-400 resize-none focus:outline-none focus:ring-0 prose dark:prose-invert"
-          style="
-            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
-            line-height: 1.6;
-          "
-        ></textarea>
-      </div>
-
-      <!-- Stats Footer -->
-      <div
-        class="px-6 py-3 bg-gray-50 dark:bg-gray-700/50 border-t border-gray-200 dark:border-gray-600"
-      >
-        <div
-          class="flex justify-between text-xs text-gray-500 dark:text-gray-400"
-        >
-          <span>{{ charCount }} characters</span>
-          <span>Created {{ formatDate(note.createdAt) }}</span>
-        </div>
+          placeholder="Start writing..."
+          class="flex-1 w-full px-6 py-4 bg-white dark:bg-gray-800 text-gray-900 dark:text-white placeholder-gray-400 border-0 resize-none focus:outline-none focus:ring-0 text-base leading-relaxed"
+        />
       </div>
     </div>
 
     <!-- Empty State -->
-    <div v-else class="flex items-center justify-center h-96 text-center">
-      <div>
-        <Edit3
+    <div v-else class="h-full flex items-center justify-center">
+      <div class="text-center">
+        <FileText
           :size="48"
           class="mx-auto text-gray-300 dark:text-gray-600 mb-4"
         />
-        <h3 class="text-lg font-medium text-gray-900 dark:text-white mb-2">
+        <h3 class="text-lg font-medium text-gray-500 dark:text-gray-400 mb-2">
           No note selected
         </h3>
-        <p class="text-gray-500 dark:text-gray-400 mb-4">
-          Select a note from the sidebar or create a new one
+        <p class="text-sm text-gray-400 dark:text-gray-500 mb-4">
+          Choose a note from the sidebar to start editing
         </p>
         <button
-          @click="$emit('createNote')"
-          class="inline-flex items-center px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium rounded-lg transition-colors btn-hover"
+          @click="$emit('create-note')"
+          class="inline-flex items-center px-4 py-2 bg-green-600 hover:bg-green-700 text-white text-sm font-medium rounded-md transition-colors"
         >
           <Plus :size="16" class="mr-2" />
-          Create Note
+          Create New Note
         </button>
       </div>
     </div>
@@ -120,8 +129,8 @@
 </template>
 
 <script setup lang="ts">
-import { Edit3, Pin, Plus, X } from "lucide-vue-next";
-import { computed, ref, watch } from "vue";
+import { Check, FileText, Pin, Plus, Tag, X } from "lucide-vue-next";
+import { computed, nextTick, ref, watch } from "vue";
 import type { Note } from "../types";
 
 interface Props {
@@ -138,7 +147,9 @@ const emit = defineEmits<{
 
 const localTitle = ref("");
 const localContent = ref("");
-const tagInput = ref("");
+const newTag = ref("");
+const showTagInput = ref(false);
+const tagInput = ref<HTMLInputElement>();
 
 // Debounced update function
 let updateTimeout: number | null = null;
@@ -178,26 +189,25 @@ const wordCount = computed(() => {
     .filter((word) => word.length > 0).length;
 });
 
-const charCount = computed(() => {
+const characterCount = computed(() => {
   return localContent.value.length;
 });
 
 // Tag management
-const handleTagInput = (event: KeyboardEvent) => {
-  if (event.key === "Enter") {
-    event.preventDefault();
-    addTag();
-  }
-};
-
-const addTag = () => {
-  const tag = tagInput.value.trim().replace("#", "");
+const addTag = async () => {
+  const tag = newTag.value.trim().replace("#", "");
   if (tag && props.note && !props.note.tags.includes(tag)) {
     emit("updateNote", props.note.id, {
       tags: [...props.note.tags, tag],
     });
   }
-  tagInput.value = "";
+  newTag.value = "";
+  showTagInput.value = false;
+};
+
+const cancelTagInput = () => {
+  newTag.value = "";
+  showTagInput.value = false;
 };
 
 const removeTag = (tagToRemove: string) => {
@@ -208,14 +218,28 @@ const removeTag = (tagToRemove: string) => {
   }
 };
 
+// Watch for tag input visibility to focus
+watch(showTagInput, async (show) => {
+  if (show) {
+    await nextTick();
+    tagInput.value?.focus();
+  }
+});
+
 // Date formatting
 const formatDate = (date: Date) => {
-  return new Intl.DateTimeFormat("en-US", {
-    year: "numeric",
-    month: "short",
-    day: "numeric",
-    hour: "2-digit",
-    minute: "2-digit",
-  }).format(date);
+  const now = new Date();
+  const diff = now.getTime() - date.getTime();
+  const days = Math.floor(diff / (1000 * 60 * 60 * 24));
+
+  if (days === 0) {
+    return date.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
+  } else if (days === 1) {
+    return "Yesterday";
+  } else if (days < 7) {
+    return `${days}d ago`;
+  } else {
+    return date.toLocaleDateString();
+  }
 };
 </script>
