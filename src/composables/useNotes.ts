@@ -1,4 +1,4 @@
-import { ref, computed, watch } from 'vue'
+import { computed, ref, watch } from 'vue'
 import type { Note, NoteFilters } from '../types'
 
 const STORAGE_KEY = 'anotherpad-notes'

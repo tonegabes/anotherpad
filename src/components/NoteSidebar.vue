@@ -1,10 +1,15 @@
 <template>
-  <div class="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 overflow-hidden">
+  <div
+    class="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 overflow-hidden"
+  >
     <!-- Filters -->
     <div class="p-4 border-b border-gray-200 dark:border-gray-700">
       <!-- Mobile Search -->
       <div class="relative mb-4 sm:hidden">
-        <Search :size="18" class="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
+        <Search
+          :size="18"
+          class="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400"
+        />
         <input
           :value="filters.search"
           @input="updateSearch"
@@ -17,7 +22,9 @@
       <!-- Sort Options -->
       <div class="space-y-3">
         <div>
-          <label class="block text-xs font-medium text-gray-700 dark:text-gray-300 mb-1">
+          <label
+            class="block text-xs font-medium text-gray-700 dark:text-gray-300 mb-1"
+          >
             Sort by
           </label>
           <select
@@ -33,7 +40,9 @@
 
         <!-- Tags Filter -->
         <div v-if="allTags.length > 0">
-          <label class="block text-xs font-medium text-gray-700 dark:text-gray-300 mb-1">
+          <label
+            class="block text-xs font-medium text-gray-700 dark:text-gray-300 mb-1"
+          >
             Filter by tag
           </label>
           <select
@@ -56,7 +65,9 @@
             type="checkbox"
             class="w-4 h-4 text-blue-600 bg-gray-100 dark:bg-gray-700 border-gray-300 dark:border-gray-600 rounded focus:ring-blue-500 focus:ring-2"
           />
-          <span class="text-sm text-gray-700 dark:text-gray-300">Pinned only</span>
+          <span class="text-sm text-gray-700 dark:text-gray-300"
+            >Pinned only</span
+          >
         </label>
       </div>
     </div>
@@ -73,20 +84,28 @@
         :key="note.id"
         :class="[
           'p-4 border-b border-gray-100 dark:border-gray-700 cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors group',
-          currentNote?.id === note.id ? 'bg-blue-50 dark:bg-blue-900/20 border-blue-200 dark:border-blue-800' : ''
+          currentNote?.id === note.id
+            ? 'bg-blue-50 dark:bg-blue-900/20 border-blue-200 dark:border-blue-800'
+            : '',
         ]"
         @click="$emit('selectNote', note)"
       >
         <div class="flex items-start justify-between mb-2">
-          <h3 class="font-medium text-gray-900 dark:text-white text-sm truncate flex-1">
-            {{ note.title || 'Untitled' }}
+          <h3
+            class="font-medium text-gray-900 dark:text-white text-sm truncate flex-1"
+          >
+            {{ note.title || "Untitled" }}
           </h3>
-          <div class="flex items-center space-x-1 ml-2 opacity-0 group-hover:opacity-100 transition-opacity">
+          <div
+            class="flex items-center space-x-1 ml-2 opacity-0 group-hover:opacity-100 transition-opacity"
+          >
             <button
               @click.stop="$emit('togglePin', note.id)"
               :class="[
                 'p-1 rounded hover:bg-gray-200 dark:hover:bg-gray-600 transition-colors',
-                note.isPinned ? 'text-yellow-600 dark:text-yellow-400' : 'text-gray-400'
+                note.isPinned
+                  ? 'text-yellow-600 dark:text-yellow-400'
+                  : 'text-gray-400',
               ]"
             >
               <Pin :size="14" />
@@ -101,7 +120,8 @@
         </div>
 
         <p class="text-xs text-gray-500 dark:text-gray-400 mb-2 line-clamp-2">
-          {{ note.content.substring(0, 80) }}{{ note.content.length > 80 ? '...' : '' }}
+          {{ note.content.substring(0, 80)
+          }}{{ note.content.length > 80 ? "..." : "" }}
         </p>
 
         <div class="flex items-center justify-between">
@@ -122,7 +142,11 @@
           </div>
 
           <div class="flex items-center space-x-1">
-            <Pin v-if="note.isPinned" :size="12" class="text-yellow-600 dark:text-yellow-400" />
+            <Pin
+              v-if="note.isPinned"
+              :size="12"
+              class="text-yellow-600 dark:text-yellow-400"
+            />
             <time class="text-xs text-gray-400">
               {{ formatDate(note.updatedAt) }}
             </time>
@@ -134,60 +158,62 @@
 </template>
 
 <script setup lang="ts">
-import { Search, FileText, Pin, Trash2 } from 'lucide-vue-next'
-import type { Note, NoteFilters } from '../types'
+import { FileText, Pin, Search, Trash2 } from "lucide-vue-next";
+import type { Note, NoteFilters } from "../types";
 
 interface Props {
-  notes: Note[]
-  currentNote: Note | null
-  filters: NoteFilters
-  allTags: string[]
+  notes: Note[];
+  currentNote: Note | null;
+  filters: NoteFilters;
+  allTags: string[];
 }
 
-defineProps<Props>()
+defineProps<Props>();
 
 const emit = defineEmits<{
-  selectNote: [note: Note]
-  deleteNote: [id: string]
-  togglePin: [id: string]
-  updateFilters: [filters: Partial<NoteFilters>]
-}>()
+  selectNote: [note: Note];
+  deleteNote: [id: string];
+  togglePin: [id: string];
+  updateFilters: [filters: Partial<NoteFilters>];
+}>();
 
 const updateSearch = (event: Event) => {
-  const target = event.target as HTMLInputElement
-  emit('updateFilters', { search: target.value })
-}
+  const target = event.target as HTMLInputElement;
+  emit("updateFilters", { search: target.value });
+};
 
 const updateSortBy = (event: Event) => {
-  const target = event.target as HTMLSelectElement
-  emit('updateFilters', { sortBy: target.value as 'updatedAt' | 'createdAt' | 'title' })
-}
+  const target = event.target as HTMLSelectElement;
+  emit("updateFilters", {
+    sortBy: target.value as "updatedAt" | "createdAt" | "title",
+  });
+};
 
 const updateTagFilter = (event: Event) => {
-  const target = event.target as HTMLSelectElement
-  emit('updateFilters', { tag: target.value || null })
-}
+  const target = event.target as HTMLSelectElement;
+  emit("updateFilters", { tag: target.value || null });
+};
 
 const updatePinnedFilter = (event: Event) => {
-  const target = event.target as HTMLInputElement
-  emit('updateFilters', { showPinnedOnly: target.checked })
-}
+  const target = event.target as HTMLInputElement;
+  emit("updateFilters", { showPinnedOnly: target.checked });
+};
 
 const formatDate = (date: Date) => {
-  const now = new Date()
-  const diff = now.getTime() - date.getTime()
-  const days = Math.floor(diff / (1000 * 60 * 60 * 24))
+  const now = new Date();
+  const diff = now.getTime() - date.getTime();
+  const days = Math.floor(diff / (1000 * 60 * 60 * 24));
 
   if (days === 0) {
-    return date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+    return date.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
   } else if (days === 1) {
-    return 'Yesterday'
+    return "Yesterday";
   } else if (days < 7) {
-    return `${days}d ago`
+    return `${days}d ago`;
   } else {
-    return date.toLocaleDateString()
+    return date.toLocaleDateString();
   }
-}
+};
 </script>
 
 <style scoped>

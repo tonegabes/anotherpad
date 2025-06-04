@@ -87,12 +87,12 @@
 </template>
 
 <script setup lang="ts">
+import { Edit3, Moon, Plus, Search, Sun } from "lucide-vue-next";
 import NoteEditor from "./components/NoteEditor.vue";
 import NoteSidebar from "./components/NoteSidebar.vue";
 import { useNotes } from "./composables/useNotes";
 import { useTheme } from "./composables/useTheme";
 import type { Note, NoteFilters } from "./types";
-import { Edit3, Moon, Plus, Search, Sun } from "lucide-vue-next";
 
 const {
   currentNote,
