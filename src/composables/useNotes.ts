@@ -64,7 +64,7 @@ export function useNotes() {
   }
 
   // Create a new note
-  const createNote = (title = 'Untitled Note', content = '') => {
+  const createNote = (title = 'Untitled Note', content = '', folderId?: string) => {
     const note: Note = {
       id: crypto.randomUUID(),
       title,
@@ -72,7 +72,8 @@ export function useNotes() {
       createdAt: new Date(),
       updatedAt: new Date(),
       tags: [],
-      isPinned: false
+      isPinned: false,
+      folderId
     }
     notes.value.unshift(note)
     currentNote.value = note
@@ -142,6 +143,15 @@ export function useNotes() {
     // Filter by tag
     if (filters.value.tag) {
       filtered = filtered.filter(note => note.tags.includes(filters.value.tag!))
+    }
+
+    // Filter by folder
+    if (filters.value.folderId !== undefined) {
+      if (filters.value.folderId === null) {
+        // Show all notes when "All Notes" is selected
+      } else {
+        filtered = filtered.filter(note => note.folderId === filters.value.folderId)
+      }
     }
 
     // Filter by pinned

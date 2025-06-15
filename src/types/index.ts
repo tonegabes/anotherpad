@@ -6,6 +6,14 @@ export interface Note {
   updatedAt: Date
   tags: string[]
   isPinned: boolean
+  folderId?: string
+}
+
+export interface Folder {
+  id: string
+  name: string
+  createdAt: Date
+  color?: string
 }
 
 export interface NoteFilters {
@@ -14,4 +22,5 @@ export interface NoteFilters {
   sortBy: 'updatedAt' | 'createdAt' | 'title'
   sortOrder: 'asc' | 'desc'
   showPinnedOnly: boolean
+  folderId?: string | null
 }

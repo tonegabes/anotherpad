@@ -19,14 +19,7 @@
             >
           </div>
 
-          <!-- New Note Button -->
-          <button
-            @click="createNote"
-            class="inline-flex items-center px-3 py-1.5 bg-green-600 hover:bg-green-700 text-white text-sm font-medium rounded-md transition-colors"
-          >
-            <Plus :size="14" class="mr-1.5" />
-            New
-          </button>
+
         </div>
 
         <!-- Center - Search -->
@@ -60,7 +53,21 @@
 
     <!-- Main Content -->
     <div class="flex flex-1 overflow-hidden">
-      <!-- Sidebar -->
+      <!-- Folder Sidebar -->
+      <div class="w-64 flex-shrink-0">
+        <FolderSidebar
+          :folders="folders"
+          :current-folder-id="currentFolderId"
+          :notes-count="notesCount"
+          @select-folder="handleSelectFolder"
+          @create-folder="handleCreateFolder"
+          @update-folder="handleUpdateFolder"
+          @delete-folder="handleDeleteFolder"
+          @create-note="createNote"
+        />
+      </div>
+
+      <!-- Notes Sidebar -->
       <div
         class="w-80 flex-shrink-0 bg-gray-50 dark:bg-gray-800 border-r border-gray-200 dark:border-gray-700"
       >
@@ -69,10 +76,12 @@
           :current-note="currentNote"
           :filters="filters"
           :all-tags="allTags"
+          :folders="folders"
           @select-note="selectNote"
           @delete-note="deleteNote"
           @toggle-pin="togglePin"
           @update-filters="updateFilters"
+          @move-note="handleMoveNote"
         />
       </div>
 
@@ -89,14 +98,18 @@
 </template>
 
 <script setup lang="ts">
+import { computed } from "vue";
 import { Edit3, Moon, Plus, Search, Sun } from "lucide-vue-next";
 import NoteEditor from "./components/NoteEditor.vue";
 import NoteSidebar from "./components/NoteSidebar.vue";
+import FolderSidebar from "./components/FolderSidebar.vue";
 import { useNotes } from "./composables/useNotes";
+import { useFolders } from "./composables/useFolders";
 import { useTheme } from "./composables/useTheme";
-import type { Note, NoteFilters } from "./types";
+import type { Note, NoteFilters, Folder } from "./types";
 
 const {
+  notes,
   currentNote,
   filters,
   filteredNotes,
@@ -107,10 +120,20 @@ const {
   togglePin,
 } = useNotes();
 
+const {
+  folders,
+  currentFolderId,
+  currentFolder,
+  createFolder,
+  updateFolder,
+  deleteFolder,
+  selectFolder,
+} = useFolders();
+
 const { isDark, toggleTheme } = useTheme();
 
 const createNote = () => {
-  createNewNote();
+  createNewNote('Untitled Note', '', currentFolderId.value || undefined);
 };
 
 const selectNote = (note: Note) => {
@@ -121,11 +144,52 @@ const updateFilters = (newFilters: Partial<NoteFilters>) => {
   Object.assign(filters.value, newFilters);
 };
 
+const handleSelectFolder = (folderId: string | null) => {
+  selectFolder(folderId);
+  updateFilters({ folderId });
+};
+
+const handleCreateFolder = (name: string) => {
+  createFolder(name);
+};
+
+const handleUpdateFolder = (id: string, updates: Partial<Folder>) => {
+  updateFolder(id, updates);
+};
+
+const handleDeleteFolder = (id: string) => {
+  deleteFolder(id);
+};
+
+const handleMoveNote = (noteId: string, folderId: string | null) => {
+  updateNote(noteId, { folderId: folderId || undefined });
+};
+
+// Compute notes count per folder
+const notesCount = computed(() => {
+  const counts: Record<string, number> = {
+    all: notes.value.length
+  };
+  
+  folders.value.forEach(folder => {
+    counts[folder.id] = notes.value.filter(note => note.folderId === folder.id).length;
+  });
+  
+  return counts;
+});
+
+// Create initial folders if none exist
+if (folders.value.length === 0) {
+  createFolder("Pessoal", "#10b981");
+  createFolder("Trabalho", "#3b82f6");
+  createFolder("Ideias", "#f59e0b");
+}
+
 // Create initial note if none exist
-if (filteredNotes.value.length === 0) {
+if (notes.value.length === 0) {
   createNewNote(
-    "Welcome to AnotherPad!",
-    "Start typing your thoughts here...\n\nThis notepad saves everything automatically to your browser's local storage.\n\n**Features:**\n- Create and organize notes\n- Search through your notes\n- Tag your notes for better organization\n- Pin important notes\n- Dark/light theme toggle\n- Responsive design\n\nEnjoy writing! ✨"
+    "Bem-vindo ao AnotherPad!",
+    "Comece a digitar seus pensamentos aqui...\n\nEste bloco de notas salva tudo automaticamente no armazenamento local do seu navegador.\n\n**Recursos:**\n- Criar e organizar notas em pastas\n- Pesquisar através de suas notas\n- Marcar suas notas para melhor organização\n- Fixar notas importantes\n- Alternar tema escuro/claro\n- Design responsivo\n\nBom trabalho! ✨"
   );
 }
 </script>

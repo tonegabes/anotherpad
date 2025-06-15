@@ -4,7 +4,7 @@
     <div class="p-4 border-b border-gray-200 dark:border-gray-700">
       <div class="flex items-center justify-between mb-3">
         <h2 class="text-sm font-semibold text-gray-900 dark:text-white">
-          All Notes
+          {{ filters.folderId ? 'Notas da Pasta' : 'Todas as Notas' }}
         </h2>
         <span class="text-xs text-gray-500 dark:text-gray-400">{{
           notes.length
@@ -57,8 +57,8 @@
       <div v-if="notes.length === 0" class="p-4 text-center">
         <div class="text-gray-400 dark:text-gray-500 text-sm">
           <FileText :size="24" class="mx-auto mb-2" />
-          <p>No notes found</p>
-          <p class="text-xs mt-1">Create your first note to get started</p>
+          <p>{{ filters.folderId ? 'Nenhuma nota nesta pasta' : 'Nenhuma nota encontrada' }}</p>
+          <p class="text-xs mt-1">{{ filters.folderId ? 'Crie sua primeira nota nesta pasta' : 'Crie sua primeira nota para começar' }}</p>
         </div>
       </div>
 
@@ -109,6 +109,22 @@
               >
                 <Trash2 :size="12" class="text-gray-400 hover:text-red-600" />
               </button>
+              
+              <!-- Move to folder dropdown -->
+              <div v-if="folders && folders.length > 0" class="relative opacity-0 group-hover:opacity-100">
+                <select
+                  @click.stop
+                  @change="moveNote(note, $event)"
+                  :value="note.folderId || ''"
+                  class="p-1 text-xs bg-transparent border border-gray-300 dark:border-gray-600 rounded hover:bg-gray-100 dark:hover:bg-gray-600 transition-colors"
+                  title="Mover para pasta"
+                >
+                  <option value="">Sem pasta</option>
+                  <option v-for="folder in folders" :key="folder.id" :value="folder.id">
+                    {{ folder.name }}
+                  </option>
+                </select>
+              </div>
             </div>
           </div>
 
@@ -158,6 +174,7 @@ interface Props {
   currentNote: Note | null;
   filters: NoteFilters;
   allTags: string[];
+  folders?: Array<{ id: string; name: string; color?: string }>;
 }
 
 defineProps<Props>();
@@ -167,6 +184,7 @@ const emit = defineEmits<{
   deleteNote: [id: string];
   togglePin: [id: string];
   updateFilters: [filters: Partial<NoteFilters>];
+  moveNote: [noteId: string, folderId: string | null];
 }>();
 
 const updateSortBy = (event: Event) => {
@@ -218,6 +236,14 @@ const getWordCount = (content: string) => {
     .trim()
     .split(/\s+/)
     .filter((word) => word.length > 0).length;
+};
+
+const moveNote = (note: Note, event: Event) => {
+  const target = event.target as HTMLSelectElement;
+  const folderId = target.value || null;
+  if (folderId !== note.folderId) {
+    emit('moveNote', note.id, folderId);
+  }
 };
 </script>
 
